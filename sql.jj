@@ -1,0 +1,92 @@
+PARSER_BEGIN(SQL)
+
+public class SQL {
+
+	public static void main (String args[]) throws ParseException {
+		try {
+			SQL parser = new SQL(System.in);
+			parser.Start();
+			System.out.print("Compiled Sucessfully.\n");
+		}
+		catch (ParseException e) {
+			System.out.print("Compilation Error: \n" + e);
+		}		
+	}
+}
+
+PARSER_END(SQL)
+
+/* scanner */
+SKIP:
+{
+	" "
+|	"\t"
+|	"\r"
+|	"\n"	
+}
+
+TOKEN:
+{
+	<SELECT: "SELECT">
+|	<FROM:	"FROM">
+|	<ALL:	"*">	
+|	<COMMA: ",">
+|	<S_PAR:	"(">
+|	<E_PAR: ")">
+|	<AND:	"AND">
+|	<OR:	"OR">
+|	<WHERE: "WHERE">
+|	<NOT:	"NOT">
+|	<ASC:	"ASC">
+|	<DESC: "DESC">
+|	<ASPAS: "'">
+|	<DISTINCT: "DISTINCT">
+|	<LIKE: "LIKE">
+|	<ORDERBY: "ORDER BY">
+|	<SEMICOLON: ";">
+|	<AS: "AS">
+|	<EQUALS: "=">
+|	<COUNT: "COUNT" | "Count">
+|	<SINGLEC: "_">
+|	<MULTIC: "%">
+}
+
+TOKEN:
+{
+	<ID: (["A"-"Z","a"-"z"])+ (["a"-"z","0"-"9"] | ["A"-"Z"] | "_")*>
+}
+
+/* parser */
+/* Select */
+void Start(): {}
+{
+	<SELECT> Verbose() (<AS> <ID>)? <FROM> 
+	(<ID> | ( <S_PAR> <SELECT> Verbose() <FROM> <ID> <E_PAR>) ) 
+	(<WHERE> VerboseWhere())? 
+	(<ORDERBY> Column() (<ASC> | <DESC>)?)? (LOOKAHEAD(2) <SEMICOLON> Start() | <SEMICOLON> <EOF>)
+}
+
+void Column(): {}
+{
+	<ALL>
+| 	(<DISTINCT>)? <ID> (LOOKAHEAD(2) <COMMA> Column())*
+}
+
+void Constant(): {}
+{
+	<ASPAS> (LOOKAHEAD(2) <SINGLEC> | <MULTIC>)* (<ID>)+ (LOOKAHEAD(2) (<SINGLEC> | <MULTIC>) (<ID>)*)* <ASPAS>
+}
+
+void Verbose(): {}	
+{
+	Column()
+|	<COUNT> <S_PAR> Column() <E_PAR>
+}
+	
+void VerboseWhere(): {}
+{
+	(<NOT>)? <ID> (<EQUALS> | <LIKE>) Constant() (LOOKAHEAD(2) (<AND> | <OR>) VerboseWhere())*
+}
+
+
+
