@@ -1,3 +1,3 @@
 # sqlexicalltest
 
-A simple lexical analizer for the "SELECT" SQL command.
+A simple lexical analyzer for the "SELECT" SQL command.
